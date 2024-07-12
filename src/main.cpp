@@ -23,6 +23,8 @@ void setup()
     Serial.println("UART2 configured for 7 data bits.");
     tickerGetData.attach(5, getData);
     snprintf(boardID, 23, "%llX", ESP.getEfuseMac());
+    setup_wifi();
+    setup_mqtt();
 }
 
 void loop()

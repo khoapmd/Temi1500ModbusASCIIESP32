@@ -97,6 +97,7 @@ void mqttLoop()
         reconnect();
     }
     client.loop();
+    yield();
 }
 
 // void setup() {
