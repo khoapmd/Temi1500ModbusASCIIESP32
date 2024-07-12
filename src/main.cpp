@@ -6,11 +6,59 @@
 #include "main.h"
 #include <Ticker.h>
 #include <WiFi.h>
+#include "mqttHelper.h"
+#include <PubSubClient.h>
+
 
 char boardID[23];
 Ticker tickerGetData;
 // Ticker tickerFirmware(checkFirmware, 1800003, 0, MILLIS); // 30 minutes
-const char *command = ":01030000000AF2\r\n"; //Get D0001 to D0010;
+const char *command = ":01030000000AF2\r\n"; // Get D0001 to D0010;
+
+
+void setup()
+{
+    Serial.begin(115200); // Initialize Serial Monitor for debugging
+    uart_setup(UART_NUM_2, 115200, UART_DATA_7_BITS);
+    Serial.println("UART2 configured for 7 data bits.");
+    tickerGetData.attach(5, getData);
+    snprintf(boardID, 23, "%llX", ESP.getEfuseMac());
+}
+
+void loop()
+{
+    mqttLoop();
+}
+
+void WiFiStationConnected(WiFiEvent_t event, WiFiEventInfo_t info)
+{
+  Serial.print("Connected Network Signal Strength (RSSI): ");
+  Serial.println(WiFi.RSSI()); /*Print WiFi signal strength*/
+  Serial.print("Gateway: ");
+  Serial.println(WiFi.gatewayIP());
+  Serial.println(WiFi.localIP());
+}
+
+void WiFiStationDisconnected(WiFiEvent_t event, WiFiEventInfo_t info)
+{
+  Serial.println("Disconnected Event");
+}
+
+void startWatchDog()
+{
+    // WatchDog
+    Serial.println("Start WatchDog");
+    esp_task_wdt_init(WDT_TIMEOUT, true); // enable panic so ESP32 restarts
+    esp_task_wdt_add(NULL);               // add current thread to WDT watch
+}
+
+void stopWatchDog()
+{
+    Serial.println("Stopping WatchDog");
+    esp_task_wdt_delete(NULL);
+    esp_task_wdt_deinit();
+}
+
 void getData()
 {
     ChamberData chamberData;
@@ -50,36 +98,4 @@ void getData()
         Serial.println("No data received.");
         uart_wait_tx_done(UART_NUM_2, 10);
     }
-}
-
-
-void setup()
-{
-    Serial.begin(115200); // Initialize Serial Monitor for debugging
-    uart_setup(UART_NUM_2, 115200, UART_DATA_7_BITS);
-    Serial.println("UART2 configured for 7 data bits.");
-    tickerGetData.attach(10, getData); 
-    snprintf(boardID, 23, "%llX", ESP.getEfuseMac());
-}
-
-void loop()
-{
-    
-
-    delay(5000);
-}
-
-void startWatchDog()
-{
-    // WatchDog
-    Serial.println("Start WatchDog");
-    esp_task_wdt_init(WDT_TIMEOUT, true); // enable panic so ESP32 restarts
-    esp_task_wdt_add(NULL);               // add current thread to WDT watch
-}
-
-void stopWatchDog()
-{
-    Serial.println("Stopping WatchDog");
-    esp_task_wdt_delete(NULL);
-    esp_task_wdt_deinit();
 }
