@@ -61,7 +61,7 @@ void reconnect()
     Serial.println("Connected!");
     stopWatchDog();
     sendConnectionAck();
-    client.subscribe("/ESP32ChamberCMD/#");
+    client.subscribe(String(APPPMQTTCMDTOPIC) + "/#");
 }
 
 void messageReceived(String &topic, String &payload)
@@ -99,7 +99,7 @@ void setWill()
     char dataToSend[70];
     // set will
     snprintf(dataToSend, sizeof(dataToSend), "{\"status\":\"%s\", \"client\": \"%s\", \"appver\": \"%s\"}", "disconnected", boardID, String(APPVERSION));
-    client.setWill("/ConnectStatus", dataToSend, true, 2);
+    client.setWill(String(APPPMQTTSTSTOPIC).c_str(), dataToSend, true, 2);
 }
 
 void sendConnectionAck()
@@ -107,7 +107,7 @@ void sendConnectionAck()
     char dataToSend[70];
     // send connection ack
     snprintf(dataToSend, sizeof(dataToSend), "{\"status\":\"%s\", \"client\": \"%s\", \"appver\": \"%s\"}", "connected", boardID, String(APPVERSION));
-    client.publish("/ConnectStatus", dataToSend, true, 2);
+    client.publish(String(APPPMQTTSTSTOPIC), dataToSend, true, 2);
 }
 
 void sendDataMQTT(ChamberData& data)
@@ -117,6 +117,6 @@ void sendDataMQTT(ChamberData& data)
              "{\"boardID\":\"%s\",\"tempPV\":%.2f,\"tempSP\":%.2f,\"wetPV\":%.2f,\"wetSP\":%.2f,\"humiPV\":%.2f,\"humiSP\":%.2f,\"nowSTS\":%d}",
              boardID, data.tempPV, data.tempSP, data.wetPV, data.wetSP, data.humiPV, data.humiSP, data.nowSTS);
     Serial.println(dataToSend);
-    client.publish("/ESPChamber", dataToSend);
+    client.publish(String(APPPMQTTDATATOPIC), dataToSend);
     //client.publish(cConf.MQTTTopic, dataToSend);
 }

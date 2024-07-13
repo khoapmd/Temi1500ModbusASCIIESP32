@@ -16,7 +16,7 @@ void setup()
     Serial.begin(115200); // Initialize Serial Monitor for debugging
     uart_setup(UART_NUM_2, 115200, UART_DATA_7_BITS); //HardwareSerial does not support 7bit data in Arduino Framework, config in ESP-IDF Framework 
     Serial.println("UART2 configured for 7 data bits.");
-    tickerGetData.attach(30, getData); //Send data every 5 minutes
+    tickerGetData.attach(30, getData); //Send data every 30 secs
     snprintf(boardID, 23, "%llX", ESP.getEfuseMac()); //Get unique ESP MAC
     //Wifi controls
     WiFi.onEvent(WiFiStationConnected, WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_CONNECTED);
