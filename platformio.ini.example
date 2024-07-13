@@ -27,3 +27,6 @@ build_flags =
 	'-DAPPPMQTTSERVER="broker-address"'
 	'-DAPPPMQTTUSER="mqtt-user"'
 	'-DAPPPMQTTPASSWORD="mqtt-password"'
+	'-DAPPPMQTTDATATOPIC="/ESPChamber"'
+	'-DAPPPMQTTSTSTOPIC="/ConnectStatus"'
+	'-DAPPPMQTTCMDTOPIC="/ESP32ChamberCMD"'
