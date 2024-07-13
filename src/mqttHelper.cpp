@@ -1,12 +1,13 @@
 
 #include <WiFi.h>
 #include <PubSubClient.h>
+#include "mqttHelper.h"
 
 // Update these with values suitable for your network.
 
-const char *ssid = "TTi Factory";
-const char *password = "ttiFactory19@1";
-const char *mqtt_server = "10.137.37.59";
+const char *ssid = "Khoa";
+const char *password = "Khoa12345";
+const char *mqtt_server = "192.168.0.179";
 const char *mqtt_user = "esp32_chamber";
 const char *mqtt_pass = "4PRms4jc8WtXdx";
 
@@ -58,18 +59,21 @@ void callback(char *topic, byte *payload, unsigned int length)
 
 void reconnect()
 {
+    startWatchDog();
     // Loop until we're reconnected
     while (!client.connected())
     {
         Serial.print("Attempting MQTT connection...");
         // Attempt to connect
-        char connect_status[150];
+        char connect_status[128];
+        
         snprintf(connect_status, sizeof(connect_status), "{\"status\":\"%s\", \"client\": \"%s\"}", "Disconnected", boardID);
         if (client.connect(boardID, mqtt_user, mqtt_pass, ("/ConnectStatus/" + String(boardID)).c_str(), 1, true, connect_status))
         {
+            stopWatchDog();
             Serial.println("MQTT connected");
             // Once connected, publish an announcement...
-            snprintf(connect_status, sizeof(connect_status), "{\"status\":\"%s\", \"client\": \"%s\", \"appver\": \"%s\"}", "Connected", boardID, APPVERSION);
+            snprintf(connect_status, sizeof(connect_status), "{\"status\":\"%s\", \"client\": \"%s\", \"appver\": \"%s\"}", "Connected", boardID, String(APPVERSION));
             client.publish(("/ConnectStatus/" + String(boardID)).c_str(), connect_status, true);
             // ... and resubscribe
             client.subscribe("inTopic");
@@ -97,31 +101,4 @@ void mqttLoop()
         reconnect();
     }
     client.loop();
-    yield();
 }
-
-// void setup() {
-//   pinMode(BUILTIN_LED, OUTPUT);     // Initialize the BUILTIN_LED pin as an output
-//   Serial.begin(115200);
-//   setup_wifi();
-//   client.setServer(mqtt_server, 1883);
-//   client.setCallback(callback);
-// }
-
-// void loop() {
-
-//   if (!client.connected()) {
-//     reconnect();
-//   }
-//   client.loop();
-
-//   unsigned long now = millis();
-//   if (now - lastMsg > 2000) {
-//     lastMsg = now;
-//     ++value;
-//     snprintf (msg, MSG_BUFFER_SIZE, "hello world #%ld", value);
-//     Serial.print("Publish message: ");
-//     Serial.println(msg);
-//     client.publish("outTopic", msg);
-//   }
-// }

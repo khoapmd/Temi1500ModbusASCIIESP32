@@ -24,12 +24,14 @@ void setup()
     tickerGetData.attach(5, getData);
     snprintf(boardID, 23, "%llX", ESP.getEfuseMac());
     setup_wifi();
+    delay(10);
     setup_mqtt();
 }
 
 void loop()
 {
     mqttLoop();
+
 }
 
 void WiFiStationConnected(WiFiEvent_t event, WiFiEventInfo_t info)
