@@ -1,23 +1,22 @@
 
-#include <WiFi.h>
-#include <PubSubClient.h>
+#include <MQTT.h>
 #include "mqttHelper.h"
-
+#define MSG_BUFFER_SIZE (50)
 // Update these with values suitable for your network.
 
-const char *ssid = "Khoa";
-const char *password = "Khoa12345";
-const char *mqtt_server = "192.168.0.179";
-const char *mqtt_user = "esp32_chamber";
-const char *mqtt_pass = "4PRms4jc8WtXdx";
+String ssid = String(APPSSID);
+String password = String(APPPASSWORD);
+String mqtt_server = String(APPPMQTTSERVER);
+String mqtt_user = String(APPPMQTTUSER);
+String mqtt_pass = String(APPPMQTTPASSWORD);
 
 WiFiClient espClient;
-PubSubClient client(espClient);
+MQTTClient client(256);
 unsigned long lastMsg = 0;
-#define MSG_BUFFER_SIZE (50)
 char msg[MSG_BUFFER_SIZE];
 int value = 0;
 extern char boardID[23];
+String commandTopic = "/ESP32ChamberCMD";
 
 void setup_wifi()
 {
@@ -29,7 +28,7 @@ void setup_wifi()
     Serial.println(ssid);
 
     WiFi.mode(WIFI_STA);
-    WiFi.begin(ssid, password);
+    WiFi.begin(ssid.c_str(), password);
 
     while (WiFi.status() != WL_CONNECTED)
     {
@@ -39,59 +38,51 @@ void setup_wifi()
 
     randomSeed(micros());
 
-    Serial.println("");
-    Serial.println("WiFi connected");
-    Serial.println("IP address: ");
-    Serial.println(WiFi.localIP());
-}
-
-void callback(char *topic, byte *payload, unsigned int length)
-{
-    Serial.print("Message arrived [");
-    Serial.print(topic);
-    Serial.print("] ");
-    for (int i = 0; i < length; i++)
-    {
-        Serial.print((char)payload[i]);
-    }
-    Serial.println();
+    printWifiInfo();
 }
 
 void reconnect()
 {
     startWatchDog();
-    // Loop until we're reconnected
-    while (!client.connected())
+    Serial.print("Checking Wi-Fi...");
+    while (WiFi.status() != WL_CONNECTED)
     {
-        Serial.print("Attempting MQTT connection...");
-        // Attempt to connect
-        char connect_status[128];
-        
-        snprintf(connect_status, sizeof(connect_status), "{\"status\":\"%s\", \"client\": \"%s\"}", "Disconnected", boardID);
-        if (client.connect(boardID, mqtt_user, mqtt_pass, ("/ConnectStatus/" + String(boardID)).c_str(), 1, true, connect_status))
+        Serial.print(".");
+        delay(1000);
+    }
+    Serial.println("Connected");
+    Serial.print("Attempting MQTT connection");
+    // client.setCleanSession(true);
+    while (!client.connect(boardID, mqtt_user.c_str(), mqtt_pass.c_str()))
+    {
+        Serial.print(".");
+        delay(1000);
+    }
+    Serial.println("Connected!");
+    stopWatchDog();
+    sendConnectionAck();
+    client.subscribe("/ESP32ChamberCMD/#");
+}
+
+void messageReceived(String &topic, String &payload)
+{
+    Serial.println("incoming: " + topic + " - " + payload);
+
+    if (topic.equals(commandTopic) || topic.equals(commandTopic + "/" + String(boardID)))
+    {
+        // Check if the message is "RESTART"
+        if (payload.equals("RESTART"))
         {
-            stopWatchDog();
-            Serial.println("MQTT connected");
-            // Once connected, publish an announcement...
-            snprintf(connect_status, sizeof(connect_status), "{\"status\":\"%s\", \"client\": \"%s\", \"appver\": \"%s\"}", "Connected", boardID, String(APPVERSION));
-            client.publish(("/ConnectStatus/" + String(boardID)).c_str(), connect_status, true);
-            // ... and resubscribe
-            client.subscribe("inTopic");
-        }
-        else
-        {
-            Serial.print("failed, rc=");
-            Serial.print(client.state());
-            Serial.println(" try again in 5 seconds");
-            // Wait 5 seconds before retrying
-            delay(5000);
+            ESP.restart();
         }
     }
 }
+
 void setup_mqtt()
 {
-    client.setServer(mqtt_server, 1883);
-    client.setCallback(callback);
+    client.begin(mqtt_server.c_str(), 1883, espClient);
+    client.onMessage(messageReceived);
+    setWill();
 }
 
 void mqttLoop()
@@ -101,4 +92,31 @@ void mqttLoop()
         reconnect();
     }
     client.loop();
+}
+
+void setWill()
+{
+    char dataToSend[70];
+    // set will
+    snprintf(dataToSend, sizeof(dataToSend), "{\"status\":\"%s\", \"client\": \"%s\", \"appver\": \"%s\"}", "disconnected", boardID, String(APPVERSION));
+    client.setWill("/ConnectStatus", dataToSend, true, 2);
+}
+
+void sendConnectionAck()
+{
+    char dataToSend[70];
+    // send connection ack
+    snprintf(dataToSend, sizeof(dataToSend), "{\"status\":\"%s\", \"client\": \"%s\", \"appver\": \"%s\"}", "connected", boardID, String(APPVERSION));
+    client.publish("/ConnectStatus", dataToSend, true, 2);
+}
+
+void sendDataMQTT(ChamberData& data)
+{
+    char dataToSend[256];
+    snprintf(dataToSend, sizeof(dataToSend), 
+             "{\"boardID\":\"%s\",\"tempPV\":%.2f,\"tempSP\":%.2f,\"wetPV\":%.2f,\"wetSP\":%.2f,\"humiPV\":%.2f,\"humiSP\":%.2f,\"nowSTS\":%d}",
+             boardID, data.tempPV, data.tempSP, data.wetPV, data.wetSP, data.humiPV, data.humiSP, data.nowSTS);
+    Serial.println(dataToSend);
+    client.publish("/ESPChamber", dataToSend);
+    //client.publish(cConf.MQTTTopic, dataToSend);
 }

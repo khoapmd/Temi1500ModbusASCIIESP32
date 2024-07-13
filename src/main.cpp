@@ -1,51 +1,43 @@
 #include <HardwareSerial.h>
 #include "uart.h"
 #include <driver/uart.h>
-#include "hex.h"
 #include <esp_task_wdt.h>
 #include "main.h"
 #include <Ticker.h>
-#include <WiFi.h>
 #include "mqttHelper.h"
-#include <PubSubClient.h>
-
 
 char boardID[23];
 Ticker tickerGetData;
 // Ticker tickerFirmware(checkFirmware, 1800003, 0, MILLIS); // 30 minutes
 const char *command = ":01030000000AF2\r\n"; // Get D0001 to D0010;
-
-
+ChamberData chamberData;
 void setup()
 {
     Serial.begin(115200); // Initialize Serial Monitor for debugging
-    uart_setup(UART_NUM_2, 115200, UART_DATA_7_BITS);
+    uart_setup(UART_NUM_2, 115200, UART_DATA_7_BITS); //HardwareSerial does not support 7bit data in Arduino Framework, config in ESP-IDF Framework 
     Serial.println("UART2 configured for 7 data bits.");
-    tickerGetData.attach(5, getData);
-    snprintf(boardID, 23, "%llX", ESP.getEfuseMac());
+    tickerGetData.attach(30, getData); //Send data every 5 minutes
+    snprintf(boardID, 23, "%llX", ESP.getEfuseMac()); //Get unique ESP MAC
+    //Wifi controls
+    WiFi.onEvent(WiFiStationConnected, WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_CONNECTED);
+    WiFi.onEvent(WiFiStationDisconnected, WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
     setup_wifi();
-    delay(10);
     setup_mqtt();
 }
 
 void loop()
 {
     mqttLoop();
-
 }
 
 void WiFiStationConnected(WiFiEvent_t event, WiFiEventInfo_t info)
 {
-  Serial.print("Connected Network Signal Strength (RSSI): ");
-  Serial.println(WiFi.RSSI()); /*Print WiFi signal strength*/
-  Serial.print("Gateway: ");
-  Serial.println(WiFi.gatewayIP());
-  Serial.println(WiFi.localIP());
+    printWifiInfo();
 }
 
 void WiFiStationDisconnected(WiFiEvent_t event, WiFiEventInfo_t info)
 {
-  Serial.println("Disconnected Event");
+    Serial.println("Disconnected Event");
 }
 
 void startWatchDog()
@@ -65,7 +57,6 @@ void stopWatchDog()
 
 void getData()
 {
-    ChamberData chamberData;
     uint8_t data[MAX_DATA_LENGTH];
     int len = 0;
 
@@ -99,7 +90,25 @@ void getData()
     }
     else
     {
+        chamberData.tempPV = 0.0;
+        chamberData.tempSP = 0.0;
+        chamberData.wetPV = 0.0;
+        chamberData.wetSP = 0.0;
+        chamberData.humiPV = 0.0;
+        chamberData.humiSP = 0.0;
+        chamberData.nowSTS = 0;
         Serial.println("No data received.");
+        sendDataMQTT(chamberData);
         uart_wait_tx_done(UART_NUM_2, 10);
     }
+}
+void printWifiInfo(){
+    Serial.println("");
+    Serial.println("WiFi connected");
+    Serial.print("Connected Network Signal Strength (RSSI): ");
+    Serial.println(WiFi.RSSI()); /*Print WiFi signal strength*/
+    Serial.print("Gateway: ");
+    Serial.println(WiFi.gatewayIP());
+    Serial.print("IP address: ");
+    Serial.println(WiFi.localIP());
 }
