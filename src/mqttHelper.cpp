@@ -48,15 +48,15 @@ void reconnect()
     while (WiFi.status() != WL_CONNECTED)
     {
         Serial.print(".");
-        delay(1000);
+        delay(500);
     }
-    Serial.println("Connected");
-    Serial.print("Attempting MQTT connection");
+    Serial.println("Connected!");
+    Serial.print("Attempting MQTT connection...");
     // client.setCleanSession(true);
     while (!client.connect(boardID, mqtt_user.c_str(), mqtt_pass.c_str()))
     {
         Serial.print(".");
-        delay(1000);
+        delay(500);
     }
     Serial.println("Connected!");
     stopWatchDog();

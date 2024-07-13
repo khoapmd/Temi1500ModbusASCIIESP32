@@ -21,6 +21,7 @@ void setup()
     //Wifi controls
     WiFi.onEvent(WiFiStationConnected, WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_CONNECTED);
     WiFi.onEvent(WiFiStationDisconnected, WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
+    startWatchDog();
     setup_wifi();
     setup_mqtt();
 }
@@ -50,7 +51,7 @@ void startWatchDog()
 
 void stopWatchDog()
 {
-    Serial.println("Stopping WatchDog");
+    Serial.println("Stop WatchDog");
     esp_task_wdt_delete(NULL);
     esp_task_wdt_deinit();
 }
