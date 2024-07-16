@@ -12,7 +12,7 @@ String vNewVersion = "N";
 int _totalLength;
 int _currentLength = 0; // current size of written firmware
 
-String _firmwareQuery = String(APPAPI) + "/getESPFirm?key=" + String(APPAPIKEY) + "&filePrefix=" + String(APPUPDNAME) + "&screenSize=" + String(APPSCREENSIZE) + "&version=" + String(APPVERSION);
+String _firmwareQuery = String(APPAPI) + "/firmware?key=" + String(APPAPIKEY) + "&filePrefix=" + String(APPUPDNAME) + "&screenSize=" + String(APPSCREENSIZE) + "&version=" + String(APPVERSION);
 
 String OTACheck(boolean forceUpdate)
 {

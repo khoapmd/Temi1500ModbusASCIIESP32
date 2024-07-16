@@ -6,6 +6,7 @@
 #include <Ticker.h>
 #include "mqttHelper.h"
 #include "OTAHelper.h"
+#include "infoHelper.h"
 
 char boardID[23];
 Ticker tickerGetData;
@@ -29,6 +30,7 @@ void setup()
     startWatchDog();
     setup_wifi();
     setup_mqtt();
+    checkDeviceExist();
     checkFirmware();
 }
 
