@@ -17,7 +17,6 @@ unsigned long lastMsg = 0;
 char msg[MSG_BUFFER_SIZE];
 int value = 0;
 extern char boardID[23];
-String commandTopic = "/ESP32ChamberCMD";
 
 void setup_wifi()
 {
@@ -68,7 +67,7 @@ void messageReceived(String &topic, String &payload)
 {
     Serial.println("Incoming: " + topic + " - " + payload);
 
-    if (topic.equals(commandTopic) || topic.equals(commandTopic + "/" + String(boardID)))
+    if (topic.equals(String(APPPMQTTCMDTOPIC)) || topic.equals(String(APPPMQTTCMDTOPIC) + "/" + String(boardID)))
     {
         // Check if the message is "RESTART"
         if (payload.equals("RESTART"))
