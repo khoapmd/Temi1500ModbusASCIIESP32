@@ -45,7 +45,7 @@ void checkDeviceExist()
 void signInfo()
 {
     HTTPClient http;
-    String queryURL = String(APPAPI) + "/esp_data?key=" + String(APPAPIKEY) + "&u_id=" + String(boardID);
+    String queryURL = String(APPAPI) + "/data?key=" + String(APPAPIKEY) + "&u_id=" + String(boardID);
     http.begin(queryURL);
     http.addHeader("Content-Type", "application/json");
     JsonDocument doc;
