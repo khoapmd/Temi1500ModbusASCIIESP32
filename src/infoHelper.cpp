@@ -20,7 +20,7 @@ void checkDeviceExist()
     int httpResponseCode = http.GET();
 
     if(httpResponseCode == 204) //code no content => info not exist
-    {;
+    {
         Serial.println("code no content => info not exist");
         signInfo();
     }
