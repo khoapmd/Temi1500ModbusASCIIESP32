@@ -1,6 +1,7 @@
 
 #include <MQTT.h>
 #include "mqttHelper.h"
+#include <esp_task_wdt.h>
 #define MSG_BUFFER_SIZE (50)
 // Update these with values suitable for your network.
 
@@ -16,7 +17,6 @@ unsigned long lastMsg = 0;
 char msg[MSG_BUFFER_SIZE];
 int value = 0;
 extern char boardID[23];
-String commandTopic = "/ESP32ChamberCMD";
 
 void setup_wifi()
 {
@@ -59,16 +59,15 @@ void reconnect()
         delay(500);
     }
     Serial.println("Connected!");
-    stopWatchDog();
     sendConnectionAck();
     client.subscribe(String(APPPMQTTCMDTOPIC) + "/#");
 }
 
 void messageReceived(String &topic, String &payload)
 {
-    Serial.println("incoming: " + topic + " - " + payload);
+    Serial.println("Incoming: " + topic + " - " + payload);
 
-    if (topic.equals(commandTopic) || topic.equals(commandTopic + "/" + String(boardID)))
+    if (topic.equals(String(APPPMQTTCMDTOPIC)) || topic.equals(String(APPPMQTTCMDTOPIC) + "/" + String(boardID)))
     {
         // Check if the message is "RESTART"
         if (payload.equals("RESTART"))
@@ -91,6 +90,7 @@ void mqttLoop()
     {
         reconnect();
     }
+    esp_task_wdt_reset();
     client.loop();
 }
 

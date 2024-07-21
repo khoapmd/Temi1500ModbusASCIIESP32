@@ -8,3 +8,4 @@ void getData();
 void WiFiStationConnected(WiFiEvent_t event, WiFiEventInfo_t info);
 void WiFiStationDisconnected(WiFiEvent_t event, WiFiEventInfo_t info);
 void printWifiInfo();
+void checkFirmware();

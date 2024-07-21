@@ -5,18 +5,24 @@
 #include "main.h"
 #include <Ticker.h>
 #include "mqttHelper.h"
+#include "OTAHelper.h"
+#include "infoHelper.h"
 
 char boardID[23];
 Ticker tickerGetData;
+Ticker tickerFirmware;
 // Ticker tickerFirmware(checkFirmware, 1800003, 0, MILLIS); // 30 minutes
 const char *command = ":01030000000AF2\r\n"; // Get D0001 to D0010;
 ChamberData chamberData;
+bool newVersionChecked = false;
+
 void setup()
 {
     Serial.begin(115200); // Initialize Serial Monitor for debugging
     uart_setup(UART_NUM_2, 115200, UART_DATA_7_BITS); //HardwareSerial does not support 7bit data in Arduino Framework, config in ESP-IDF Framework 
     Serial.println("UART2 configured for 7 data bits.");
     tickerGetData.attach(30, getData); //Send data every 30 secs
+    tickerFirmware.attach(300, checkFirmware); // Checking firmware every 5 minutes
     snprintf(boardID, 23, "%llX", ESP.getEfuseMac()); //Get unique ESP MAC
     //Wifi controls
     WiFi.onEvent(WiFiStationConnected, WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_CONNECTED);
@@ -25,6 +31,8 @@ void setup()
     startWatchDog(); //Start watch dog, if cannot connect to the wifi, esp will restart after 60 secs
     setup_wifi();
     setup_mqtt();
+    checkDeviceExist();
+    checkFirmware();
 }
 
 void loop()
@@ -113,4 +121,14 @@ void printWifiInfo(){
     Serial.println(WiFi.gatewayIP());
     Serial.print("IP address: ");
     Serial.println(WiFi.localIP());
+}
+
+void checkFirmware()
+{
+  if (WiFi.status() == WL_CONNECTED && WiFi.localIP().toString() != "0.0.0.0")
+  {
+    stopWatchDog();
+    OTACheck(true);
+    startWatchDog();
+  }
 }
