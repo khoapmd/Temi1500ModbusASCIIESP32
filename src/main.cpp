@@ -21,7 +21,8 @@ void setup()
     //Wifi controls
     WiFi.onEvent(WiFiStationConnected, WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_CONNECTED);
     WiFi.onEvent(WiFiStationDisconnected, WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
-    startWatchDog();
+    
+    startWatchDog(); //Start watch dog, if cannot connect to the wifi, esp will restart after 60 secs
     setup_wifi();
     setup_mqtt();
 }
