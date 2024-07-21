@@ -12,12 +12,12 @@ String vNewVersion = "N";
 int _totalLength;
 int _currentLength = 0; // current size of written firmware
 
-String _firmwareQuery = String(APPAPI) + "/firmware?key=" + String(APPAPIKEY) + "&filePrefix=" + String(APPUPDNAME) + "&screenSize=" + String(APPSCREENSIZE) + "&version=" + String(APPVERSION);
+String _firmwareQuery = String(APPAPI) + "/firmware?filePrefix=" + String(APPUPDNAME) + "&screenSize=" + String(APPSCREENSIZE) + "&version=" + String(APPVERSION);
 
 String OTACheck(boolean forceUpdate)
 {
     HTTPClient client;
-
+    client.addHeader("X-Secret-Key", String(APPAPIKEY));
     JsonDocument doc;
 
     String queryURL = _firmwareQuery + "&update=N";
@@ -61,6 +61,7 @@ void OTAUpdate()
 {
     // Connect to external web server
     HTTPClient client;
+    client.addHeader("X-Secret-Key", String(APPAPIKEY));
     int loopNumber = 0;
     Serial.println("Checking if new firmware is available.");
 
@@ -68,7 +69,7 @@ void OTAUpdate()
 
     Serial.println(fwVersionURL);
 
-    client.begin(netOTA, fwVersionURL);
+    client.begin(netOTA, fwVersionURL.c_str());
     // Get file, just to check if each reachable
     int resp = client.GET();
     Serial.print("Response: ");

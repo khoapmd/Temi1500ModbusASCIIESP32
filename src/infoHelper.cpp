@@ -11,7 +11,8 @@ void checkDeviceExist()
 {
     HTTPClient http;
     JsonDocument doc;
-    String queryURL = String(APPAPI) + "/checkexist?key=" + String(APPAPIKEY) + "&u_id=" + String(boardID);
+    http.addHeader("X-Secret-Key", String(APPAPIKEY));
+    String queryURL = String(APPAPI) + "/checkexist?u_id=" + String(boardID);
 
     Serial.println("Will connect " + queryURL);
 
@@ -22,6 +23,7 @@ void checkDeviceExist()
     if(httpResponseCode == 204) //code no content => info not exist
     {
         Serial.println("code no content => info not exist");
+        http.end();
         signInfo();
     }
     else if(httpResponseCode == 200){ //info exist, check firm_ver
@@ -29,6 +31,7 @@ void checkDeviceExist()
         JsonDocument doc;
         deserializeJson(doc, http.getString());
         if(String(APPVERSION) != doc["firm_ver"]){
+            http.end();
             updateFirmver();
         }
     }
@@ -37,17 +40,18 @@ void checkDeviceExist()
         Serial.println(httpResponseCode);
         String payload = http.getString();
         Serial.println("Response " + payload);
+        
     }
-
-    http.end();
 }
 
 void signInfo()
 {
     HTTPClient http;
-    String queryURL = String(APPAPI) + "/data?key=" + String(APPAPIKEY) + "&u_id=" + String(boardID);
-    http.begin(queryURL);
     http.addHeader("Content-Type", "application/json");
+    http.addHeader("X-Secret-Key", String(APPAPIKEY));
+    String queryURL = String(APPAPI) + "/data?u_id=" + String(boardID);
+    Serial.println("Will connect " + queryURL);
+    http.begin(netClient, queryURL.c_str());
     JsonDocument doc;
     doc["u_id"] = String(boardID);
     doc["device_type"] = String(APPDEVTYPE);
@@ -76,8 +80,9 @@ void signInfo()
 void updateFirmver()
 {
     HTTPClient http;
-    String queryURL = String(APPAPI) + "/firmware?key=" + String(APPAPIKEY) + "&u_id=" + String(boardID);
-    http.begin(queryURL);
+    http.addHeader("X-Secret-Key", String(APPAPIKEY));
+    String queryURL = String(APPAPI) + "/firmware?u_id=" + String(boardID);
+    http.begin(netClient, queryURL.c_str());
     http.addHeader("Content-Type", "application/json");
     JsonDocument doc;
     doc["firm_ver"] = String(APPVERSION);
