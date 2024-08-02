@@ -95,7 +95,6 @@ void getData()
             Serial.printf("0x%.2X ", data[i]);
         }
         Serial.println("]");
-
         convertData(data, len, &chamberData);
     }
     else
@@ -108,9 +107,9 @@ void getData()
         chamberData.humiSP = 0.0;
         chamberData.nowSTS = 0;
         Serial.println("No data received.");
-        sendDataMQTT(chamberData);
         uart_wait_tx_done(UART_NUM_2, 10);
     }
+    sendDataMQTT(chamberData);
 }
 void printWifiInfo(){
     Serial.println("");

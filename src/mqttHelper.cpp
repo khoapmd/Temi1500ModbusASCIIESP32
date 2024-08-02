@@ -98,7 +98,7 @@ void setWill()
 {
     char dataToSend[72];
     // set will
-    snprintf(dataToSend, sizeof(dataToSend), "{\"status\":\"%s\", \"sensor_id\": \"%s\", \"appver\": \"%s\"}", "disconnected", boardID, String(APPVERSION));
+    snprintf(dataToSend, sizeof(dataToSend), "{\"status\":\"%s\", \"client\": \"%s\", \"appver\": \"%s\"}", "disconnected", boardID, String(APPVERSION));
     client.setWill(String(APPPMQTTSTSTOPIC).c_str(), dataToSend, true, 2);
 }
 
@@ -106,7 +106,7 @@ void sendConnectionAck()
 {
     char dataToSend[72];
     // send connection ack
-    snprintf(dataToSend, sizeof(dataToSend), "{\"status\":\"%s\", \"sensor_id\": \"%s\", \"appver\": \"%s\"}", "connected", boardID, String(APPVERSION));
+    snprintf(dataToSend, sizeof(dataToSend), "{\"status\":\"%s\", \"client\": \"%s\", \"appver\": \"%s\"}", "connected", boardID, String(APPVERSION));
     client.publish(String(APPPMQTTSTSTOPIC), dataToSend, true, 2);
 }
 
@@ -114,7 +114,7 @@ void sendDataMQTT(ChamberData& data)
 {
     char dataToSend[256];
     snprintf(dataToSend, sizeof(dataToSend), 
-             "{\"boardID\":\"%s\",\"tempPV\":%.2f,\"tempSP\":%.2f,\"wetPV\":%.2f,\"wetSP\":%.2f,\"humiPV\":%.2f,\"humiSP\":%.2f,\"nowSTS\":%d}",
+             "{\"sensor_id\":\"%s\",\"tempPV\":%.2f,\"tempSP\":%.2f,\"wetPV\":%.2f,\"wetSP\":%.2f,\"humiPV\":%.2f,\"humiSP\":%.2f,\"nowSTS\":%d}",
              boardID, data.tempPV, data.tempSP, data.wetPV, data.wetSP, data.humiPV, data.humiSP, data.nowSTS);
     Serial.println(dataToSend);
     client.publish(String(APPPMQTTDATATOPIC), dataToSend);
