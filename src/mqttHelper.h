@@ -8,3 +8,4 @@ void mqttLoop();
 void setWill();
 void sendConnectionAck();
 void sendDataMQTT(ChamberData& data);
+void printMemoryUsage();

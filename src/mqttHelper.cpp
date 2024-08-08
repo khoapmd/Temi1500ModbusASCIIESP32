@@ -2,6 +2,7 @@
 #include <MQTT.h>
 #include "mqttHelper.h"
 #include <esp_task_wdt.h>
+#include <esp_heap_caps.h>
 #define MSG_BUFFER_SIZE (50)
 // Update these with values suitable for your network.
 
@@ -81,6 +82,7 @@ void setup_mqtt()
 {
     client.begin(mqtt_server.c_str(), 1883, espClient);
     client.onMessage(messageReceived);
+    client.setKeepAlive(60);
     setWill();
 }
 
@@ -118,5 +120,19 @@ void sendDataMQTT(ChamberData& data)
              boardID, data.tempPV, data.tempSP, data.wetPV, data.wetSP, data.humiPV, data.humiSP, data.nowSTS);
     Serial.println(dataToSend);
     client.publish(String(APPPMQTTDATATOPIC), dataToSend);
-    //client.publish(cConf.MQTTTopic, dataToSend);
+    delay(30);
+    //printMemoryUsage(); //dont know why this line prevent crash, after checking, its not crash, its mqtt disconnected event
+}
+
+void printMemoryUsage() {
+    size_t freeHeap = esp_get_free_heap_size();
+    size_t minFreeHeap = heap_caps_get_minimum_free_size(MALLOC_CAP_DEFAULT);
+
+    Serial.printf("Free heap: %u bytes\n", freeHeap);
+    Serial.printf("Minimum free heap since boot: %u bytes\n", minFreeHeap);
+    // char dataToSend[100];
+    // snprintf(dataToSend, sizeof(dataToSend), 
+    //          "{\"Free heap:\":\"%u\",\"Minimum free heap since boot\":%u}", freeHeap, minFreeHeap);
+    // client.publish("Memory", dataToSend);
+
 }

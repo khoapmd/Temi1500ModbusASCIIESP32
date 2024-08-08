@@ -8,6 +8,7 @@
 #include "OTAHelper.h"
 #include "infoHelper.h"
 
+
 char boardID[23];
 Ticker tickerGetData;
 Ticker tickerFirmware;
@@ -38,6 +39,7 @@ void setup()
 void loop()
 {
     mqttLoop();
+    yield(); //prevent crash
 }
 
 void WiFiStationConnected(WiFiEvent_t event, WiFiEventInfo_t info)
@@ -87,7 +89,7 @@ void getData()
         }
     }
 
-    if (len > 0)
+    if (len == MAX_DATA_LENGTH)
     {
         Serial.printf("Received %u bytes: [ ", len);
         for (int i = 0; i < len; i++)
