@@ -22,7 +22,7 @@ uint8_t hex_char_to_int(char c) {
 }
 
 // Function to convert a two-character hexadecimal string to an integer value
-uint16_t hex_string_to_int(const char* hex_str) {
+int16_t hex_string_to_int(const char* hex_str) {
     return (hex_char_to_int(hex_str[0]) << 12) |
            (hex_char_to_int(hex_str[1]) << 8)  |
            (hex_char_to_int(hex_str[2]) << 4)  |
@@ -43,15 +43,6 @@ void convertData(const uint8_t *hex_array, size_t len, ChamberData *data)
     char humiPV_hex[5] = {ascii_str[23], ascii_str[24], ascii_str[25], ascii_str[26], '\0'};
     char humiSP_hex[5] = {ascii_str[27], ascii_str[28], ascii_str[29], ascii_str[30], '\0'};
     char nowSTS_hex[5] = {ascii_str[43], ascii_str[44], ascii_str[45], ascii_str[46], '\0'};
-
-    // Convert the hexadecimal strings to integer values
-    uint16_t tempPV = hex_string_to_int(tempPV_hex);
-    uint16_t tempSP = hex_string_to_int(tempSP_hex);
-    uint16_t wetPV = hex_string_to_int(wetPV_hex);
-    uint16_t wetSP = hex_string_to_int(wetSP_hex);
-    uint16_t humiPV = hex_string_to_int(humiPV_hex);
-    uint16_t humiSP = hex_string_to_int(humiSP_hex);
-    uint16_t nowSTS = hex_string_to_int(nowSTS_hex);
 
     // Convert the hexadecimal strings to integer values
     data->tempPV = hex_string_to_int(tempPV_hex) / 100.0;
